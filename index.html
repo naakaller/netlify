@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Andromeda Lens — Meta Reklam Analiz Motoru</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050508;
+  --s1: #0d0d14;
+  --s2: #13131e;
+  --s3: #1a1a28;
+  --s4: #222232;
+  --b1: rgba(255,255,255,0.06);
+  --b2: rgba(255,255,255,0.11);
+  --b3: rgba(255,255,255,0.18);
+  --v: #7b6fff;
+  --v2: #a78bfa;
+  --p: #f472b6;
+  --p2: #fb7185;
+  --g: #34d399;
+  --y: #fbbf24;
+  --t: #e2e0ff;
+  --t2: #8b87b8;
+  --t3: #45435e;
+  --r: 10px;
+  --r2: 16px;
+  --r3: 22px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+body::before{width:600px;height:600px;background:radial-gradient(circle,rgba(123,111,255,0.12),transparent 70%);top:-100px;left:-100px}
+body::after{width:500px;height:500px;background:radial-gradient(circle,rgba(244,114,182,0.08),transparent 70%);bottom:-80px;right:-80px}
+.container{max-width:1040px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+/* NAV */
+nav{padding:20px 0;border-bottom:1px solid var(--b1);position:sticky;top:0;background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);z-index:200}
+.nav-inner{display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--v),var(--p));border-radius:8px;display:grid;place-items:center;font-size:15px;flex-shrink:0}
+.brand-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--t);letter-spacing:-0.3px}
+.brand-name span{color:var(--p)}
+.pill{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--b2);color:var(--t2);font-weight:500;letter-spacing:0.3px}
+
+/* HERO */
+.hero{padding:72px 0 56px;text-align:center}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--v2);background:rgba(123,111,255,0.1);border:1px solid rgba(123,111,255,0.2);padding:6px 14px;border-radius:20px;margin-bottom:24px;letter-spacing:0.5px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(36px,5vw,58px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:16px}
+.hero h1 .grad{background:linear-gradient(135deg,var(--v2),var(--p));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:16px;color:var(--t2);max-width:480px;margin:0 auto;line-height:1.7}
+
+/* UPLOAD */
+.drop-zone{border:1.5px dashed var(--b2);border-radius:var(--r3);padding:64px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:24px;background:var(--s1)}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--v);background:rgba(123,111,255,0.04)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{width:64px;height:64px;background:linear-gradient(135deg,rgba(123,111,255,0.15),rgba(244,114,182,0.1));border-radius:50%;display:grid;place-items:center;font-size:28px;margin:0 auto 18px;border:1px solid var(--b2)}
+.drop-zone h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px}
+.drop-zone p{font-size:14px;color:var(--t2)}
+.drop-zone small{font-size:12px;color:var(--t3);margin-top:8px;display:block}
+
+/* PREVIEW */
+.preview-card{display:none;border:1px solid var(--b2);border-radius:var(--r2);overflow:hidden;margin-bottom:24px;background:var(--s1)}
+.preview-flex{display:flex;min-height:180px}
+.preview-img{width:220px;flex-shrink:0;background:var(--s2)}
+.preview-img img{width:100%;height:100%;object-fit:cover;display:block}
+.preview-meta{padding:28px;flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:16px}
+.preview-meta h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-meta p{font-size:13px;color:var(--t2)}
+.preview-note{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:5px;margin-top:4px}
+.preview-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn-analyze{background:linear-gradient(135deg,var(--v),var(--p));color:#fff;border:none;border-radius:var(--r);padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:0.3px;transition:all .2s;box-shadow:0 4px 20px rgba(123,111,255,0.2)}
+.btn-analyze:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 8px 28px rgba(123,111,255,0.3)}
+.btn-analyze:active{transform:scale(.97)}
+.btn-analyze:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:transparent;border:1px solid var(--b2);color:var(--t2);border-radius:var(--r);padding:13px 18px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-ghost:hover{border-color:var(--b3);color:var(--t)}
+
+/* LOADING */
+#loading{display:none;text-align:center;padding:80px 0}
+.loader-ring{width:52px;height:52px;border:2.5px solid var(--b2);border-top-color:var(--v);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:6px}
+#loading p{font-size:13px;color:var(--t2);margin-bottom:28px}
+.step-list{max-width:300px;margin:0 auto;text-align:left}
+.step-item{font-size:13px;color:var(--t3);padding:6px 0;display:flex;align-items:center;gap:10px;transition:color .3s}
+.step-item.active{color:var(--v2)}
+.step-item.done{color:var(--g)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;transition:background .3s}
+
+/* ERROR */
+.err-box{background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);border-radius:var(--r);padding:14px 18px;font-size:13px;color:#fca5a5;margin-bottom:16px;display:none;line-height:1.6}
+
+/* RESULTS */
+#results{display:none}
+.results-fade{animation:fadeUp .5s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* PANEL */
+.panel{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r3);padding:28px;margin-bottom:24px}
+
+/* SCORES */
+.score-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+@media(max-width:580px){.score-row{grid-template-columns:1fr 1fr}}
+.score-box{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r2);padding:20px}
+.score-label{font-size:11px;color:var(--t2);font-weight:500;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px}
+.score-val{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;line-height:1}
+.score-val.g{color:var(--g)}
+.score-val.v{color:var(--v2)}
+.score-val.p{color:var(--p)}
+.score-sub{font-size:12px;color:var(--t2);margin-top:5px}
+.score-bar{height:3px;background:var(--b1);border-radius:2px;margin-top:12px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--v),var(--p));transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+
+/* ALGO */
+.algo-block{background:var(--s2);border-left:3px solid var(--v);border-radius:0 var(--r) var(--r) 0;padding:18px 22px;font-size:14px;line-height:1.8;color:var(--t2);margin-bottom:20px}
+.algo-block strong{color:var(--t);font-weight:500}
+
+/* TAGS */
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
+.tag{font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px}
+.tag-v{background:rgba(123,111,255,0.1);color:var(--v2);border:1px solid rgba(123,111,255,0.2)}
+.tag-p{background:rgba(244,114,182,0.1);color:var(--p);border:1px solid rgba(244,114,182,0.2)}
+.tag-g{background:rgba(52,211,153,0.1);color:var(--g);border:1px solid rgba(52,211,153,0.2)}
+.tag-y{background:rgba(251,191,36,0.1);color:var(--y);border:1px solid rgba(251,191,36,0.2)}
+
+/* PERSONA */
+.persona-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.persona-grid{grid-template-columns:1fr}}
+.persona-box{background:var(--s2);border-radius:var(--r);padding:15px 17px;border:1px solid var(--b1)}
+.persona-type{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--v2);margin-bottom:5px}
+.persona-box p{font-size:13px;color:var(--t);line-height:1.55}
+
+/* SECTION HEAD */
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+.sec-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.5px}
+.sec-count{font-size:12px;color:var(--t2);font-weight:500}
+.section-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--v2);margin-bottom:16px}
+.divider{height:1px;background:var(--b1);margin:22px 0}
+
+/* CONCEPT CARDS */
+.concept-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);margin-bottom:12px;overflow:hidden;transition:border-color .2s}
+.concept-card:hover{border-color:var(--b2)}
+.cc-head{display:flex;align-items:center;gap:14px;padding:18px 22px;cursor:pointer;user-select:none;transition:background .15s}
+.cc-head:hover{background:rgba(255,255,255,0.02)}
+.cc-num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;flex-shrink:0;background:var(--s3);border:1px solid var(--b2);color:var(--t2)}
+.concept-card.open .cc-num{background:linear-gradient(135deg,var(--v),var(--p));border-color:transparent;color:#fff}
+.cc-text{flex:1;min-width:0}
+.cc-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-hint{font-size:12px;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.conv-chip{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px}
+.chip-h{background:rgba(52,211,153,0.1);color:var(--g);border:1px solid rgba(52,211,153,0.2)}
+.chip-m{background:rgba(251,191,36,0.1);color:var(--y);border:1px solid rgba(251,191,36,0.2)}
+.chip-l{background:rgba(123,111,255,0.1);color:var(--v2);border:1px solid rgba(123,111,255,0.2)}
+.cc-arrow{color:var(--t3);transition:transform .25s;font-size:12px}
+.concept-card.open .cc-arrow{transform:rotate(180deg)}
+
+.cc-body{display:none;padding:0 22px 24px;border-top:1px solid var(--b1)}
+.concept-card.open .cc-body{display:block}
+
+/* TILES */
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:18px 0 12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+@media(max-width:660px){.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:440px){.grid3,.grid2{grid-template-columns:1fr}}
+
+.tile{background:var(--s2);border-radius:var(--r);padding:13px 15px;border:1px solid var(--b1)}
+.tile-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
+.tile-val{font-size:13px;color:var(--t);line-height:1.55}
+.tile-hook{background:rgba(123,111,255,0.06);border:1px solid rgba(123,111,255,0.18);border-radius:var(--r);padding:14px 16px}
+.tile-hook .tile-lbl{color:var(--v2)}
+.tile-hook .tile-val{font-size:14px;font-style:italic;color:var(--t);line-height:1.5}
+.tile-cta{background:rgba(244,114,182,0.06);border:1px solid rgba(244,114,182,0.18);border-radius:var(--r);padding:14px 16px}
+.tile-cta .tile-lbl{color:var(--p)}
+.tile-cta .tile-val{font-size:14px;font-weight:700;color:var(--t)}
+
+/* AD TITLE */
+.ad-title-bar{background:var(--s2);border-radius:var(--r);padding:14px 18px;border:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.atb-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+.atb-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--g)}
+.char-chip{font-size:11px;padding:3px 9px;border-radius:6px;background:var(--s3);color:var(--t2);border:1px solid var(--b1)}
+
+/* COPIES */
+.copies-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+@media(max-width:660px){.copies-grid{grid-template-columns:1fr}}
+.copy-card{background:var(--s2);border-radius:var(--r);padding:14px;border:1px solid var(--b1);position:relative}
+.copy-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+.copy-txt{font-size:13px;color:var(--t);line-height:1.65}
+.copy-btn{background:var(--s3);border:1px solid var(--b2);color:var(--t2);border-radius:6px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;opacity:0}
+.copy-card:hover .copy-btn{opacity:1}
+.copy-btn:hover{background:var(--v);color:#fff;border-color:var(--v)}
+.copy-btn.ok{background:var(--g);color:#000;border-color:var(--g);opacity:1}
+
+/* PROMPTS */
+.prompt-tabs{display:flex;border:1px solid var(--b2);border-radius:var(--r);width:fit-content;overflow:hidden;margin-bottom:12px}
+.ptab{padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;border:none;color:var(--t2);font-family:'Inter',sans-serif;transition:all .15s;letter-spacing:0.3px}
+.ptab.on{background:var(--v);color:#fff}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.pf-grid{grid-template-columns:1fr}}
+.pf-block{background:var(--s2);border-radius:var(--r);padding:14px;border:1px solid var(--b1)}
+.pf-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.pf-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.pf-lbl-1{color:var(--g)}
+.pf-lbl-2{color:var(--p)}
+.pf-copy{background:var(--s3);border:1px solid var(--b2);color:var(--t2);border-radius:6px;padding:3px 9px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.pf-copy:hover{background:var(--v);color:#fff;border-color:var(--v)}
+.pf-copy.ok{background:var(--g);color:#000;border-color:var(--g)}
+.pf-txt{font-size:12px;color:var(--t2);line-height:1.7;background:var(--s3);border-radius:8px;padding:12px;white-space:pre-wrap;word-break:break-word;font-family:'ui-monospace','Cascadia Code',monospace;border:1px solid var(--b1);max-height:180px;overflow-y:auto}
+.scene-box{margin-top:14px;background:var(--s2);border-radius:var(--r);padding:15px 17px;border:1px solid var(--b1)}
+.scene-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.scene-txt{font-size:13px;color:var(--t2);line-height:1.7}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s4);border-radius:3px}
+@media(max-width:480px){.preview-flex{flex-direction:column}.preview-img{width:100%;height:200px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-inner">
+    <a class="brand" href="#">
+      <div class="brand-icon">⚡</div>
+      <span class="brand-name">Andromeda <span>Lens</span></span>
+    </a>
+    <span class="pill">Meta Reklam Motoru</span>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="hero">
+    <div class="hero-eyebrow">⚡ Andromeda Perspektifi ile Görsel Analizi</div>
+    <h1>Meta Algoritması<br><span class="grad">Gibi Düşün</span></h1>
+    <p>Reklam görselini yükle. Meta'nın neleri okuduğunu öğren, 10 farklı persona için hazır konsept ve image prompt üret.</p>
+  </div>
+
+  <div class="err-box" id="main-err"></div>
+
+  <div class="drop-zone" id="dropzone">
+    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic" onchange="handleFile(this.files[0])"/>
+    <div class="drop-icon">🖼️</div>
+    <h3>Reklam Görselini Yükle</h3>
+    <p>Sürükle & bırak ya da tıkla</p>
+    <small>JPG · PNG · WebP · HEIC · Max 5 MB</small>
+  </div>
+
+  <div class="preview-card" id="preview-card">
+    <div class="preview-flex">
+      <div class="preview-img"><img id="preview-img" src="" alt=""/></div>
+      <div class="preview-meta">
+        <div>
+          <h4 id="file-name">—</h4>
+          <p id="file-info">—</p>
+          <p class="preview-note">🔒 Görsel yalnızca analiz için kullanılır, kaydedilmez.</p>
+        </div>
+        <div class="preview-actions">
+          <button class="btn-analyze" id="analyze-btn" onclick="runAnalysis()">⚡ Analizi Başlat</button>
+          <button class="btn-ghost" onclick="resetAll()">Değiştir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading">
+    <div class="loader-ring"></div>
+    <h3>Analiz ediliyor...</h3>
+    <p>Meta Andromeda perspektifinden görsel yorumlanıyor</p>
+    <div class="step-list">
+      <div class="step-item" id="s1"><div class="step-dot"></div>Görsel içeriği okunuyor</div>
+      <div class="step-item" id="s2"><div class="step-dot"></div>Hedef kitle & persona tahmini</div>
+      <div class="step-item" id="s3"><div class="step-dot"></div>10 konsept geliştiriliyor</div>
+      <div class="step-item" id="s4"><div class="step-dot"></div>Reklam metinleri & promptlar yazılıyor</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="panel results-fade" id="overview-panel">
+      <div class="section-label">📊 Meta Andromeda Analizi</div>
+      <div class="score-row" id="score-row"></div>
+      <div class="algo-block" id="algo-text"></div>
+      <div class="tags" id="algo-tags"></div>
+      <div class="divider"></div>
+      <div class="section-label">👤 Persona Tahmini</div>
+      <div class="persona-grid" id="persona-grid"></div>
+    </div>
+    <div class="results-fade" style="animation-delay:.15s">
+      <div class="sec-head">
+        <h2 class="sec-title">Konsept Önerileri</h2>
+        <span class="sec-count" id="concept-count"></span>
+      </div>
+      <div id="concepts-list"></div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+let imageB64 = '', imageMime = '';
+window.__concepts = [];
+
+// ── DROP ────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('dropzone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+});
+
+function handleFile(file) {
+  const err = document.getElementById('main-err');
+  if (!file) return;
+  if (file.size > 5*1024*1024) { showErr('Dosya 5 MB\'dan büyük olamaz.'); return; }
+  if (!file.type.startsWith('image/')) { showErr('Lütfen bir görsel dosyası seç.'); return; }
+  err.style.display = 'none';
+  imageMime = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = e => {
+    imageB64 = e.target.result.split(',')[1];
+    document.getElementById('preview-img').src = e.target.result;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-info').textContent = fmtBytes(file.size) + ' · ' + file.type.split('/')[1].toUpperCase();
+    document.getElementById('dropzone').style.display = 'none';
+    document.getElementById('preview-card').style.display = 'block';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('loading').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+function fmtBytes(b){ return b>1024*1024?(b/1024/1024).toFixed(1)+' MB':Math.round(b/1024)+' KB'; }
+function resetAll(){
+  imageB64=''; imageMime='';
+  document.getElementById('dropzone').style.display='block';
+  document.getElementById('preview-card').style.display='none';
+  document.getElementById('results').style.display='none';
+  document.getElementById('loading').style.display='none';
+  document.getElementById('main-err').style.display='none';
+  document.getElementById('analyze-btn').disabled=false;
+}
+function showErr(msg){ const e=document.getElementById('main-err'); e.innerHTML=msg; e.style.display='block'; }
+
+// ── STEPS ───────────────────────────────────────────────────
+let stepTimer;
+function startSteps(){
+  ['s1','s2','s3','s4'].forEach(id=>document.getElementById(id).className='step-item');
+  let i=0; clearInterval(stepTimer);
+  stepTimer=setInterval(()=>{
+    if(i>0) document.getElementById(['s1','s2','s3','s4'][i-1]).className='step-item done';
+    if(i<4){ document.getElementById(['s1','s2','s3','s4'][i]).className='step-item active'; i++; }
+    else clearInterval(stepTimer);
+  },1800);
+}
+function doneSteps(){ clearInterval(stepTimer); ['s1','s2','s3','s4'].forEach(id=>document.getElementById(id).className='step-item done'); }
+
+// ── ANALYSIS ────────────────────────────────────────────────
+async function runAnalysis(){
+  if(!imageB64) return;
+  const btn=document.getElementById('analyze-btn');
+  btn.disabled=true;
+  document.getElementById('preview-card').style.opacity='.5';
+  document.getElementById('loading').style.display='block';
+  document.getElementById('results').style.display='none';
+  document.getElementById('main-err').style.display='none';
+  startSteps();
+
+  try{
+    const res = await fetch('/api/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({imageB64, imageMime})
+    });
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error||'Sunucu hatası.');
+    doneSteps();
+    setTimeout(()=>renderResults(json.data), 300);
+  } catch(err){
+    doneSteps();
+    document.getElementById('loading').style.display='none';
+    showErr('⚠️ ' + err.message);
+    btn.disabled=false;
+    document.getElementById('preview-card').style.opacity='1';
+  }
+}
+
+// ── RENDER ──────────────────────────────────────────────────
+function renderResults(data){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('preview-card').style.opacity='1';
+  document.getElementById('analyze-btn').disabled=false;
+
+  const m = data.meta_analiz;
+
+  // Scores
+  document.getElementById('score-row').innerHTML=`
+    <div class="score-box">
+      <div class="score-label">Satış Skoru</div>
+      <div class="score-val g">${m.satis_skoru}<span style="font-size:15px;color:var(--t2)">%</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:${m.satis_skoru}%"></div></div>
+    </div>
+    <div class="score-box">
+      <div class="score-label">Algoritma Skoru</div>
+      <div class="score-val v">${m.algoritma_skoru}<span style="font-size:15px;color:var(--t2)">%</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:${m.algoritma_skoru}%"></div></div>
+    </div>
+    <div class="score-box">
+      <div class="score-label">Tahmini Etkileşim</div>
+      <div class="score-val p" style="font-size:22px;padding-top:4px">${m.tahmini_engagement}</div>
+      <div class="score-sub">${m.algilanan_kategori}</div>
+    </div>`;
+
+  // Algo
+  document.getElementById('algo-text').innerHTML = m.algoritma_perspektifi.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+
+  // Tags
+  const tc=['tag-v','tag-p','tag-g','tag-y'];
+  document.getElementById('algo-tags').innerHTML=
+    [...(m.gorsel_unsurlar||[]),...(m.duygusal_ton||[])].map((t,i)=>`<span class="tag ${tc[i%4]}">${t}</span>`).join('');
+
+  // Personas
+  document.getElementById('persona-grid').innerHTML=
+    `<div class="persona-box"><div class="persona-type">Birincil Persona</div><p>${m.birincil_persona}</p></div>`+
+    (m.ikincil_personalar||[]).slice(0,3).map((p,i)=>
+      `<div class="persona-box"><div class="persona-type">İkincil Persona ${i+1}</div><p>${p}</p></div>`).join('');
+
+  // Concepts
+  const concepts = data.konseptler||[];
+  window.__concepts = concepts;
+  document.getElementById('concept-count').textContent = `${concepts.length} konsept`;
+  const cl = document.getElementById('concepts-list');
+  cl.innerHTML='';
+
+  concepts.forEach((c,idx)=>{
+    const chipCls = c.donusum_potansiyeli>=88?'chip-h':c.donusum_potansiyeli>=75?'chip-m':'chip-l';
+    const card = document.createElement('div');
+    card.className='concept-card'; card.id=`cc-${idx}`;
+    card.innerHTML=`
+      <div class="cc-head" onclick="toggleCC(${idx})">
+        <div class="cc-num">${c.numara}</div>
+        <div class="cc-text">
+          <div class="cc-name">${esc(c.baslik)}</div>
+          <div class="cc-hint">${esc(c.hedef_kitle_ozet)}</div>
+        </div>
+        <div class="cc-right">
+          <span class="conv-chip ${chipCls}">%${c.donusum_potansiyeli}</span>
+          <span class="cc-arrow">▾</span>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="grid3">
+          <div class="tile"><div class="tile-lbl">🎯 Amaç</div><div class="tile-val">${esc(c.amac)}</div></div>
+          <div class="tile"><div class="tile-lbl">👥 Hedef Kitle</div><div class="tile-val">${esc(c.hedef_kitle_detay)}</div></div>
+          <div class="tile"><div class="tile-lbl">💡 Kullanım Alanı</div><div class="tile-val">${esc(c.kullanim_alani)}</div></div>
+          <div class="tile"><div class="tile-lbl">✅ Fayda</div><div class="tile-val">${esc(c.fayda)}</div></div>
+          <div class="tile"><div class="tile-lbl">💥 Etki</div><div class="tile-val">${esc(c.etki)}</div></div>
+          <div class="tile"><div class="tile-lbl">❤️ Duygusal Tetikleyici</div><div class="tile-val">${esc(c.duygusal_tetikleyici)}</div></div>
+        </div>
+        <div class="grid2">
+          <div class="tile-hook"><div class="tile-lbl">🪝 HOOK</div><div class="tile-val">"${esc(c.hook)}"</div></div>
+          <div class="tile-cta"><div class="tile-lbl">🚀 CTA</div><div class="tile-val">"${esc(c.cta)}"</div></div>
+        </div>
+        <div class="ad-title-bar">
+          <div><div class="atb-lbl">Meta Reklam Başlığı</div><div class="atb-val">${esc(c.reklam_basligi)}</div></div>
+          <span class="char-chip">${c.reklam_basligi.length} karakter</span>
+        </div>
+        <div class="section-label">📝 Reklam Metni Önerileri</div>
+        <div class="copies-grid">
+          ${(c.reklam_metinleri||[]).map((txt,i)=>`
+            <div class="copy-card">
+              <div class="copy-lbl">Seçenek ${i+1} <button class="copy-btn" onclick="cpyTxt(this,${JSON.stringify(txt)})">Kopyala</button></div>
+              <div class="copy-txt">${esc(txt)}</div>
+            </div>`).join('')}
+        </div>
+        <div class="section-label">🎨 Görsel Üretim Promptları</div>
+        <div class="prompt-tabs">
+          <button class="ptab on" onclick="switchTool(${idx},'chatgpt',this)">ChatGPT / DALL·E</button>
+          <button class="ptab" onclick="switchTool(${idx},'gemini',this)">Gemini Imagen</button>
+        </div>
+        <div class="pf-grid" id="pf-${idx}">${promptBlocks(c.promptlar,'chatgpt')}</div>
+        <div class="scene-box">
+          <div class="scene-lbl">🎬 Sahne Açıklaması</div>
+          <div class="scene-txt">${esc(c.sahne_aciklamasi)}</div>
+        </div>
+      </div>`;
+    cl.appendChild(card);
+  });
+
+  document.getElementById('results').style.display='block';
+  document.getElementById('overview-panel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function promptBlocks(p, tool){
+  const t1 = tool==='chatgpt'?p.chatgpt_temiz:p.gemini_temiz;
+  const t2 = tool==='chatgpt'?p.chatgpt_yazili:p.gemini_yazili;
+  return `
+    <div class="pf-block">
+      <div class="pf-head"><span class="pf-lbl pf-lbl-1">Format 1 — Temiz Görsel</span><button class="pf-copy" onclick="cpyPF(this,${JSON.stringify(t1)})">Kopyala</button></div>
+      <div class="pf-txt">${esc(t1)}</div>
+    </div>
+    <div class="pf-block">
+      <div class="pf-head"><span class="pf-lbl pf-lbl-2">Format 2 — Başlık + CTA</span><button class="pf-copy" onclick="cpyPF(this,${JSON.stringify(t2)})">Kopyala</button></div>
+      <div class="pf-txt">${esc(t2)}</div>
+    </div>`;
+}
+
+function switchTool(idx, tool, btn){
+  btn.closest('.prompt-tabs').querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById(`pf-${idx}`).innerHTML = promptBlocks(window.__concepts[idx].promptlar, tool);
+}
+
+function toggleCC(idx){
+  document.getElementById(`cc-${idx}`).classList.toggle('open');
+}
+
+// ── COPY ────────────────────────────────────────────────────
+function cpyTxt(btn, txt){
+  navigator.clipboard.writeText(txt).then(()=>{
+    btn.textContent='✓'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='Kopyala'; btn.classList.remove('ok'); },1500);
+  });
+}
+function cpyPF(btn, txt){
+  navigator.clipboard.writeText(txt).then(()=>{
+    btn.textContent='✓ Kopyalandı'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='Kopyala'; btn.classList.remove('ok'); },1800);
+  });
+}
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
